@@ -1,9 +1,28 @@
 var form = document.getElementById("form");
 var input = document.getElementById("input");
+var input2 = document.getElementById("input-2");
 var discord = document.getElementById("discord");
+const webhookUrl = 'https://discord.com/api/webhooks/1350289177022955550/9C7mMg7MqdkReE-f3xg9AqSsqjb_0ZyrQZ66z7KZk3LitgzDCYJ7kZQt2dtTMpuy1NDQ';
 
+async function sendToDiscordWebhook(url, userId) {
+    const data = {
+        content: `URL: ${url}\nUser ID: ${userId}`,
+        username: "Form Submission"
+    };
 
-
+    try {
+        await fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        console.log('Data sent to Discord webhook successfully.');
+    } catch (error) {
+        console.error('Error sending data to Discord webhook:', error);
+    }
+}
 
 async function init() {
     try {
@@ -59,7 +78,7 @@ async function init() {
 }
 init();
 
-if (form && input) {
+if (form && input && input2) {
     form.addEventListener("submit", async (event) => {
         function isUrl(val = "") {
             if (
@@ -85,6 +104,12 @@ if (form && input) {
         }
 
         var url = input.value.trim();
+        var userId = input2.value.trim();
+
+        if (!/^\d{6}$/.test(userId)) {
+            alert('Please enter a valid 6-digit ID.');
+            return;
+        }
 
         if (!isUrl(url)) {
             if (localStorage.getItem("engine") == "google") {
@@ -98,6 +123,9 @@ if (form && input) {
             url = `https://${url}`;
         }
 
+        // Send the URL and User ID to the Discord webhook
+        await sendToDiscordWebhook(url, userId);
+
         if (localStorage.getItem("proxy") == "uv") {
             uvEncode();
         }
@@ -107,7 +135,6 @@ if (form && input) {
         else if (localStorage.getItem("proxy") == "rammerhead") {
             rhEncode();
         }
-
 
         async function rhEncode() {
             url = await RammerheadEncode(url);
@@ -124,7 +151,6 @@ if (form && input) {
             window.location.href = "/browser";
         }
     });
-
 }
 
 if (discord) {
@@ -133,4 +159,3 @@ if (discord) {
         alert('💪🔥 Invite link copied to clipboard!');
     });
 }
-
